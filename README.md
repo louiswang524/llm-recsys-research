@@ -4,7 +4,7 @@ A research framework for training and evaluating LLMs on verbalized user behavio
 
 Inspired by [PLUM](https://arxiv.org/abs/2510.07784) (Google/YouTube) and [OneRec-Think](https://arxiv.org/abs/2510.11639) (Kuaishou).
 
-**[Architecture diagrams →](docs/architecture.md)**
+**[Architecture diagrams →](docs/architecture.md)** · **[Gap analysis vs. PLUM / OneRec-Think / GR2 →](docs/gap_analysis.md)**
 
 ## What it does
 
