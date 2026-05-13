@@ -1,0 +1,4 @@
+k_values: [1, 5, 10, 20]
+num_neg_samples: 99   # 99 negatives + 1 positive = 100 candidates per user
+eval_batch_size: 8
+scoring_method: log_prob  # log_prob | constrained_gen

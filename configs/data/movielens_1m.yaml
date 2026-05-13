@@ -1,0 +1,12 @@
+_target_: llm_recsys.data.datasets.movielens.MovieLensDataset
+name: movielens_1m
+max_history_len: 20
+min_history_len: 5
+rating_threshold: 3.5      # only keep interactions >= threshold as positives
+include_ratings: true
+include_genres: true
+verbalization_template: rating_history  # rating_history | minimal
+split:
+  strategy: leave_one_out  # leave_one_out | temporal
+  val_ratio: 0.1
+  test_ratio: 0.1

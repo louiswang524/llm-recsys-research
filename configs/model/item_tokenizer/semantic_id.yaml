@@ -1,0 +1,7 @@
+_target_: llm_recsys.data.item_tokenizer.semantic_id.SemanticIDTokenizer
+n_levels: 3
+codebook_size: 8192
+item_embed_dim: 256
+# item_encoder is the sentence-transformer used to embed item text before RQ-VAE
+item_encoder: sentence-transformers/all-MiniLM-L6-v2
+token_prefix: "item"

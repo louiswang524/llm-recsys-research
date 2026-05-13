@@ -1,0 +1,13 @@
+_target_: llm_recsys.data.datasets.amazon.AmazonReviewsDataset
+name: amazon_beauty
+category: All_Beauty
+max_history_len: 20
+min_history_len: 5
+include_review_text: true
+max_review_words: 50
+include_ratings: true
+verbalization_template: rating_history
+split:
+  strategy: leave_one_out
+  val_ratio: 0.1
+  test_ratio: 0.1

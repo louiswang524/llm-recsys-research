@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Data & checkpoints (too large for git)
+data/raw/
+data/processed/
+outputs/
+
+# Notebooks checkpoints
+.ipynb_checkpoints/
+
+# Env
+.env
+*.env
+
+# IDE
+.vscode/
+.idea/
+
+# WandB
+wandb/
+
+# macOS
+.DS_Store

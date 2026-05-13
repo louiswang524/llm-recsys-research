@@ -1,0 +1,15 @@
+defaults:
+  - data: movielens_1m
+  - model: qwen2_7b_lora
+  - model/item_tokenizer: text
+  - training: sft
+  - loss: lm_only
+  - eval: default
+  - _self_
+
+seed: 42
+output_dir: outputs/${now:%Y-%m-%d_%H-%M-%S}
+data_dir: data/raw
+processed_dir: data/processed
+max_length: 2048
+use_wandb: false

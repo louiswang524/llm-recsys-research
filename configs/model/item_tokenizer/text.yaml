@@ -1,0 +1,2 @@
+_target_: llm_recsys.data.item_tokenizer.text_tokenizer.TextItemTokenizer
+max_title_tokens: 32
