@@ -1,13 +1,8 @@
-import os
 import torch
 import torch.nn as nn
-from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+from transformers import AutoModelForCausalLM, BitsAndBytesConfig
 from peft import get_peft_model, LoraConfig, TaskType, PeftModel
 from omegaconf import DictConfig
-
-
-def _is_distributed() -> bool:
-    return int(os.environ.get("WORLD_SIZE", 1)) > 1
 
 
 class LLMRecModel(nn.Module):
@@ -26,15 +21,14 @@ class LLMRecModel(nn.Module):
             )
 
         attn_impl = "flash_attention_2" if model_cfg.get("use_flash_attention") else "eager"
-        # device_map="auto" enables pipeline parallelism on a single node but is
-        # incompatible with DDP/FSDP/TPU where the Trainer owns device placement.
-        device_map = None if _is_distributed() else "auto"
+        # Never set device_map here — HF Trainer calls model.to(device) on our
+        # nn.Module wrapper, which breaks if the base model used meta tensors.
+        # Let the Trainer own device placement; FSDP handles multi-GPU sharding.
         self.base_model = AutoModelForCausalLM.from_pretrained(
             model_cfg.base_model,
             torch_dtype=torch.bfloat16 if model_cfg.get("torch_dtype") == "bfloat16" else torch.float32,
             quantization_config=bnb_config,
             attn_implementation=attn_impl,
-            device_map=device_map,
         )
 
         if vocab_size_delta > 0:
