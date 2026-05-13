@@ -28,23 +28,99 @@ A synthesis of best practices from PLUM, OneRec-Think, GR2, and the broader gene
 
 ### 1.3 Verbalization
 
-The verbalization strategy is an under-studied ablation axis. Key decisions:
+Verbalization has two independent axes that must be considered together:
+- **Context representation** — how the user's history is written in the prompt
+- **Target representation** — how the next item is expressed in the prediction
+
+These axes interact with your choice of item tokenization (Section 2). Do not design them separately.
+
+#### The three verbalization modes
+
+**Mode 1 — Text-only (baseline, no SIDs)**
+
+Context and target are both plain text. No vocabulary extension needed.
 
 ```
-# Full verbalization (most information)
-"User history:
+User history:
 1. The Dark Knight [Action] — 5/5
-   'One of the best films ever made.'
+   "One of the best films ever made."
 2. Inception [Sci-Fi] — 4/5
 Predict the next item.
-Next:"
-
-# Minimal (fastest, good baseline)
-"History: The Dark Knight → Inception → The Prestige
-Next:"
+Next: Interstellar
 ```
 
-**What matters:** Including ratings helps when engagement is a strong signal. Review text helps on Amazon-style data but adds noise on pure ratings data (MovieLens). Genre/category consistently helps. Ablate all three independently.
+Context items: title + metadata text.
+Target: item title as text tokens from the existing LLM vocabulary.
+
+---
+
+**Mode 2 — SID target (text context → discrete item prediction)**
+
+Context stays human-readable text. Target switches to SID tokens.
+This is the standard SFT format for SID-based models.
+
+```
+User history:
+1. The Dark Knight [Action] — 5/5
+2. Inception [Sci-Fi] — 4/5
+Predict the next item.
+Next: <item_L1_15><item_L2_7><item_L3_33>
+```
+
+Context items: title + metadata text (same as Mode 1).
+Target: the 3 SID tokens assigned to the ground-truth item.
+
+What the model learns: given a natural language description of user taste, emit the correct discrete item code. This is a cross-modal mapping — the model must bridge text understanding and item vocabulary.
+
+---
+
+**Mode 3 — Cross-modal CPT (text + SID context → SID target)**
+
+Both context items AND the target use SIDs. This is the CPT alignment stage from PLUM and OneRec-Think: the model learns that a text description co-occurs with specific SID tokens, grounding the new vocabulary in semantic meaning before SFT begins.
+
+```
+User history:
+1. The Dark Knight [Action] <item_L1_3><item_L2_17><item_L3_5> — 5/5
+2. Inception [Sci-Fi] <item_L1_8><item_L2_2><item_L3_19> — 4/5
+Predict the next item.
+Next: <item_L1_15><item_L2_7><item_L3_33>
+```
+
+Context items: title + metadata text **and** the item's SID tokens together.
+Target: SID tokens only.
+
+What the model learns: "The Dark Knight" = `<item_L1_3><item_L2_17><item_L3_5>`. By seeing each item's text and its codes in the same context, the model builds aligned representations. Without this step, SID tokens start as meaningless random embeddings and the SFT stage must do alignment and task learning simultaneously.
+
+#### Mapping modes to training stages
+
+| Stage | Mode | Reason |
+|---|---|---|
+| CPT | Mode 3 (cross-modal) | Align SID codes to semantic meaning via co-occurrence with text |
+| SFT | Mode 2 (SID target) | Task specialization: predict discrete item codes from text context |
+| DPO | Mode 2 (SID target) | Same format as SFT; chosen/rejected differ only in the target SID |
+| Text-only baseline | Mode 1 | No SID infrastructure needed; fast ablation |
+
+#### Context verbalization options (independent of mode)
+
+```
+# Full: title + genre + rating + review excerpt
+"1. The Dark Knight [Action] — 5/5\n   'One of the best films ever made.'"
+
+# No review (MovieLens has no reviews)
+"1. The Dark Knight [Action] — 5/5"
+
+# No rating (ablate whether rating helps)
+"1. The Dark Knight [Action]"
+
+# Minimal chain (fastest)
+"The Dark Knight → Inception → The Prestige"
+```
+
+**What matters:** Ratings help when engagement variance is high (Amazon). Review text helps on Amazon-style data, adds noise on pure ratings data (MovieLens). Genre/category consistently helps. SID tokens in the context (Mode 3) add alignment signal but increase sequence length. Ablate all four independently.
+
+#### Code note
+
+The current `InstructionFormatter` always writes the item title as the target text, which is correct only for Mode 1. For Modes 2 and 3, it needs access to the `item_tokenizer` to emit SID tokens as the target. This is a known gap — the formatter and the item tokenizer are currently decoupled. The fix is to pass `item_tokenizer` into `InstructionFormatter` and switch the target representation based on tokenizer type.
 
 ---
 
