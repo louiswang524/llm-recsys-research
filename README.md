@@ -35,8 +35,8 @@ For A100 / CUDA 11.8+, uncomment `flash-attn` and `bitsandbytes` in `requirement
 
 **Colab:**
 ```python
-!git clone <this-repo>
-%cd llm-recsys-research
+!git clone https://github.com/louiswang524/llm-recsys-research
+%cd /content/llm-recsys-research
 !pip install -e . -r requirements.txt -q
 ```
 
