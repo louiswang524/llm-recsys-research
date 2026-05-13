@@ -5,26 +5,10 @@ from torch.utils.data import Dataset
 from .trainer import RecTrainer
 
 
-def _distributed_type() -> str:
-    """Detect accelerate distributed backend from environment."""
-    # accelerate sets this when launched via `accelerate launch`
-    return os.environ.get("ACCELERATE_DISTRIBUTED_TYPE", "NO").upper()
-
-
 def build_training_args(cfg: DictConfig, output_dir: str) -> TrainingArguments:
     t = cfg.training
-    dist = _distributed_type()
-
-    # FSDP requires explicit opt-in in TrainingArguments
-    fsdp = "full_shard auto_wrap" if dist == "FSDP" else ""
-    fsdp_transformer_layer_cls = (
-        # Qwen2 / Llama transformer block class names for auto-wrap policy
-        "Qwen2DecoderLayer,LlamaDecoderLayer,MistralDecoderLayer"
-        if dist == "FSDP" else ""
-    )
-
-    # bf16 is handled differently on TPU (always on) vs GPU
-    use_bf16 = t.bf16 and dist != "TPU"
+    # bf16 is handled natively by TPU; only set it explicitly for GPU runs
+    use_bf16 = t.bf16 and os.environ.get("ACCELERATE_DISTRIBUTED_TYPE", "") != "TPU"
 
     return TrainingArguments(
         output_dir=output_dir,
@@ -47,9 +31,11 @@ def build_training_args(cfg: DictConfig, output_dir: str) -> TrainingArguments:
         dataloader_num_workers=t.dataloader_num_workers,
         report_to=["wandb"] if cfg.get("use_wandb") else ["none"],
         remove_unused_columns=False,
-        fsdp=fsdp,
-        fsdp_transformer_layer_cls_to_wrap=fsdp_transformer_layer_cls or None,
-        ddp_find_unused_parameters=False,  # LoRA leaves some params unused in DDP
+        # LoRA leaves frozen params unused in DDP — suppress the warning
+        ddp_find_unused_parameters=False,
+        # FSDP sharding strategy is configured via configs/accelerate/fsdp.yaml,
+        # not here — recent transformers removed fsdp_transformer_layer_cls_to_wrap
+        # from TrainingArguments entirely.
     )
 
 
