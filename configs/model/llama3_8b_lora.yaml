@@ -1,6 +1,6 @@
 base_model: meta-llama/Meta-Llama-3-8B-Instruct
 torch_dtype: bfloat16
-use_flash_attention: true
+use_flash_attention: false     # set true on A100 after: pip install flash-attn --no-build-isolation
 use_gradient_checkpointing: true
 load_in_4bit: false
 lora:

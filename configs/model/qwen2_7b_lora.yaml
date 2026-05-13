@@ -1,6 +1,6 @@
 base_model: Qwen/Qwen2.5-7B-Instruct
 torch_dtype: bfloat16
-use_flash_attention: true      # requires flash-attn; set false for TPU/L4 w/o CUDA 11.8
+use_flash_attention: false     # set true on A100 after: pip install flash-attn --no-build-isolation
 use_gradient_checkpointing: true
 load_in_4bit: false            # set true for QLoRA on smaller GPUs
 lora:
