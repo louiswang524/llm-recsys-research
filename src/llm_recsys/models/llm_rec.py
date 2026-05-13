@@ -32,9 +32,16 @@ class LLMRecModel(nn.Module):
         )
 
         if vocab_size_delta > 0:
-            self.base_model.resize_token_embeddings(
-                self.base_model.config.vocab_size + vocab_size_delta
-            )
+            orig_vocab_size = self.base_model.config.vocab_size
+            self.base_model.resize_token_embeddings(orig_vocab_size + vocab_size_delta)
+            # Warm-start new SID token rows to the mean of existing embeddings.
+            # Random init causes large gradient noise on new tokens in early training.
+            with torch.no_grad():
+                emb = self.base_model.get_input_embeddings()
+                emb.weight[orig_vocab_size:] = emb.weight[:orig_vocab_size].mean(dim=0)
+                if not self.base_model.config.tie_word_embeddings:
+                    lm_head = self.base_model.get_output_embeddings()
+                    lm_head.weight[orig_vocab_size:] = lm_head.weight[:orig_vocab_size].mean(dim=0)
 
         if model_cfg.get("use_gradient_checkpointing"):
             self.base_model.gradient_checkpointing_enable()
