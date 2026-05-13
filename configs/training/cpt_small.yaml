@@ -1,0 +1,15 @@
+# CPT config for <2B models
+stage: cpt
+num_epochs: 3
+per_device_batch_size: 16
+gradient_accumulation_steps: 4  # effective batch = 64
+learning_rate: 1.0e-4           # higher than 7B CPT (5e-5) — smaller model needs more signal
+lr_scheduler: cosine
+warmup_ratio: 0.05
+max_grad_norm: 1.0
+save_steps: 500
+eval_steps: 500
+logging_steps: 50
+bf16: true
+dataloader_num_workers: 4
+resume_from_checkpoint: null

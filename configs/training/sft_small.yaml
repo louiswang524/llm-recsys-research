@@ -1,0 +1,15 @@
+# SFT config for <2B models (0.5B, 1.5B) — larger batches fit in the same VRAM budget
+stage: sft
+num_epochs: 5
+per_device_batch_size: 16      # ~4× larger than 7B — same VRAM, smaller activations
+gradient_accumulation_steps: 2 # effective batch = 32; same as 7B config (4×4)
+learning_rate: 3.0e-4          # slightly higher — smaller models need stronger signal per step
+lr_scheduler: cosine
+warmup_ratio: 0.05
+max_grad_norm: 1.0
+save_steps: 200
+eval_steps: 200
+logging_steps: 20
+bf16: true
+dataloader_num_workers: 4
+resume_from_checkpoint: null

@@ -86,5 +86,12 @@ class LLMRecModel(nn.Module):
     @classmethod
     def from_pretrained(cls, checkpoint_path: str, cfg: DictConfig) -> "LLMRecModel":
         model = cls(cfg)
-        model.base_model = PeftModel.from_pretrained(model.base_model, checkpoint_path)
+        if cfg.model.lora.enabled:
+            model.base_model = PeftModel.from_pretrained(model.base_model, checkpoint_path)
+        else:
+            # Full fine-tune checkpoint: reload weights directly into the base model
+            model.base_model = AutoModelForCausalLM.from_pretrained(
+                checkpoint_path,
+                torch_dtype=model.base_model.dtype,
+            )
         return model

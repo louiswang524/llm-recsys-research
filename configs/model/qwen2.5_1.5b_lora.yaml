@@ -1,0 +1,16 @@
+# Qwen2.5-1.5B-Instruct — fits on T4 (16GB) with gradient checkpointing
+# hidden_size=1536, num_layers=28, intermediate_size=8960
+# LoRA trainable params: ~8M (≈0.5% of 1.5B)
+base_model: Qwen/Qwen2.5-1.5B-Instruct
+torch_dtype: bfloat16
+use_flash_attention: false
+use_gradient_checkpointing: true
+load_in_4bit: false
+lora:
+  enabled: true
+  r: 8
+  lora_alpha: 16
+  target_modules: [q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj]
+  lora_dropout: 0.05
+  bias: none
+  task_type: CAUSAL_LM

@@ -1,0 +1,17 @@
+# Qwen3-0.6B — Qwen3 generation, dense model, strong reasoning for its size
+# hidden_size=1024, num_layers=28, intermediate_size=3072
+# LoRA trainable params: ~3M (≈0.5% of 0.6B)
+# Qwen3 uses thinking mode by default; disable it for SFT with enable_thinking=False
+base_model: Qwen/Qwen3-0.6B
+torch_dtype: bfloat16
+use_flash_attention: false
+use_gradient_checkpointing: false
+load_in_4bit: false
+lora:
+  enabled: true
+  r: 8
+  lora_alpha: 16
+  target_modules: [q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj]
+  lora_dropout: 0.05
+  bias: none
+  task_type: CAUSAL_LM

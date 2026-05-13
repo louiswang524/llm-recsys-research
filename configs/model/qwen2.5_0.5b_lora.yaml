@@ -1,0 +1,16 @@
+# Qwen2.5-0.5B-Instruct — fits on a free Colab T4 with room for batch size 8
+# hidden_size=896, num_layers=24, intermediate_size=4864
+# LoRA trainable params: ~2.4M (≈0.5% of 0.5B)
+base_model: Qwen/Qwen2.5-0.5B-Instruct
+torch_dtype: bfloat16
+use_flash_attention: false
+use_gradient_checkpointing: false   # not needed at this size; saves overhead
+load_in_4bit: false
+lora:
+  enabled: true
+  r: 8                # lower rank — 0.5B has less intrinsic capacity
+  lora_alpha: 16      # keep alpha = 2×r
+  target_modules: [q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj]
+  lora_dropout: 0.05
+  bias: none
+  task_type: CAUSAL_LM

@@ -90,19 +90,42 @@ Every axis of the experiment is a config group. Mix and match on the command lin
 ```bash
 # axes
 data=           movielens_1m | movielens_20m | amazon_beauty
-model=          qwen2_7b_lora | llama3_8b_lora
+model=          qwen2.5_0.5b_lora | qwen2.5_0.5b_full | qwen2.5_1.5b_lora | qwen3_0.6b_lora | qwen2_7b_lora | llama3_8b_lora
 model/item_tokenizer=  text | semantic_id
-training=       cpt | sft | dpo
+training=       cpt | cpt_small | sft | sft_small | dpo
 loss=           lm_only | lm_engagement | lm_mtp
+```
+
+### Model selection by hardware
+
+| Config | Size | VRAM | Speed | Use case |
+|---|---|---|---|---|
+| `qwen2.5_0.5b_full` | 0.5B | ~5GB | Fastest | Full FT ablations on any GPU or CPU |
+| `qwen2.5_0.5b_lora` | 0.5B | ~3GB | Fastest | Free Colab T4, rapid iteration |
+| `qwen3_0.6b_lora` | 0.6B | ~3GB | Fast | Qwen3 architecture, stronger reasoning |
+| `qwen2.5_1.5b_lora` | 1.5B | ~6GB | Fast | Better quality, still fits free T4 |
+| `qwen2_7b_lora` | 7B | ~18GB | Moderate | Default; A100/L4 GPU or QLoRA on T4 |
+| `llama3_8b_lora` | 8B | ~20GB | Moderate | English-focused alternative to Qwen 7B |
+
+For <2B models, use the `_small` training configs which double the batch size:
+
+```bash
+# Fast ablation on free Colab (T4, 15GB)
+python scripts/04_train.py model=qwen2.5_0.5b_lora training=sft_small
+
+# Full fine-tune at 0.5B (strongest small-model baseline)
+python scripts/04_train.py model=qwen2.5_0.5b_full training=sft_small
+
+# CPT → SFT pipeline at 1.5B
+python scripts/04_train.py model=qwen2.5_1.5b_lora training=cpt_small
+python scripts/04_train.py model=qwen2.5_1.5b_lora training=sft_small \
+  training.resume_from_checkpoint=outputs/<cpt-run>/final
 ```
 
 ### Key overrides
 
 ```bash
-# Smaller LoRA rank for faster iteration
-python scripts/04_train.py model.lora.r=8
-
-# QLoRA (4-bit) for smaller GPUs
+# QLoRA (4-bit) to fit 7B on a T4
 python scripts/04_train.py model.load_in_4bit=true
 
 # Longer history

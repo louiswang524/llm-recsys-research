@@ -1,0 +1,10 @@
+# Qwen2.5-0.5B-Instruct — full fine-tune (no LoRA)
+# At 0.5B params × 2 bytes (bf16) = 1GB weights + ~3GB optimizer states → fits T4 at batch=4
+# Full FT is the strongest baseline at this scale; use it for ablations before scaling up.
+base_model: Qwen/Qwen2.5-0.5B-Instruct
+torch_dtype: bfloat16
+use_flash_attention: false
+use_gradient_checkpointing: false
+load_in_4bit: false
+lora:
+  enabled: false
