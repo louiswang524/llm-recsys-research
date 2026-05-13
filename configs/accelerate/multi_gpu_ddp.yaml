@@ -1,0 +1,8 @@
+compute_environment: LOCAL_MACHINE
+distributed_type: MULTI_GPU
+mixed_precision: bf16
+num_processes: 4          # set to number of GPUs
+num_machines: 1
+machine_rank: 0
+same_network: true
+main_training_function: main

@@ -1,0 +1,7 @@
+compute_environment: LOCAL_MACHINE
+distributed_type: TPU
+mixed_precision: no       # TPU uses bfloat16 natively; set via model config
+num_processes: 8          # v2-8 / v3-8; adjust for your TPU type
+num_machines: 1
+main_training_function: main
+downcast_bf16: true       # cast fp32 ops to bf16 on TPU for speed
